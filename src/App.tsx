@@ -15,6 +15,14 @@ import SellerAuthPage from './Seller/SellerPages/SellerAuthPage';
 import ProtectedSellerRoute from './Seller/SellerComponent/ProtectedSellerRoute';
 import NotFound from './Client/ClientsComponent/NotFound';
 
+const getBasename = () => {
+  const path = window.location.pathname;
+  if (path.startsWith('/greencards-seller-portal')) {
+    return '/greencards-seller-portal';
+  }
+  return '/';
+};
+
 const router = createBrowserRouter([
   {
     path: "/seller/auth",
@@ -39,7 +47,7 @@ const router = createBrowserRouter([
     ],
   },
   { path: "*", element: <NotFound /> },
-]);
+], { basename: getBasename() });
 
 function App() {
   return (
