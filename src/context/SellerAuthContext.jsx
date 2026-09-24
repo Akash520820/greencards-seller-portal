@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as authApi from '../api/auth.api';
-import { useClientAuth } from './ClientAuthContext';
+import ClientAuthContext from './ClientAuthContext';
 
 const SellerAuthContext = createContext();
 
@@ -11,27 +11,49 @@ const SellerAuthContext = createContext();
 //
 // SellerAuthProvider is mounted INSIDE ClientAuthProvider (see App.tsx), so
 // on initial load it reuses the user ClientAuthContext already fetched from
-// GET /users/current-user instead of firing a second, identical request —
-// previously both contexts called the same endpoint independently on every
-// page load, which was needlessly burning through the shared rate limit.
+// GET /users/current-user instead of firing a second, identical request.
+// If mounted standalone, it gracefully fetches current-user directly.
 
 export const SellerAuthProvider = ({ children }) => {
-  const { user: clientUser, isLoading: clientLoading } = useClientAuth();
+  const clientAuth = useContext(ClientAuthContext);
+  const clientUser = clientAuth ? clientAuth.user : null;
+  const clientLoading = clientAuth ? clientAuth.isLoading : false;
   const [isSellerAuthenticated, setIsSellerAuthenticated] = useState(false);
   const [seller, setSeller] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (clientLoading) return; // wait for ClientAuthContext's single current-user check to finish
-    if (clientUser?.role === 'seller') {
-      setSeller(clientUser);
-      setIsSellerAuthenticated(true);
+    if (clientAuth) {
+      if (clientLoading) return;
+      if (clientUser?.role === 'seller') {
+        setSeller(clientUser);
+        setIsSellerAuthenticated(true);
+      } else {
+        setSeller(null);
+        setIsSellerAuthenticated(false);
+      }
+      setLoading(false);
     } else {
-      setSeller(null);
-      setIsSellerAuthenticated(false);
+      authApi.getCurrentUser()
+        .then((res) => {
+          const user = res?.data;
+          if (user?.role === 'seller') {
+            setSeller(user);
+            setIsSellerAuthenticated(true);
+          } else {
+            setSeller(null);
+            setIsSellerAuthenticated(false);
+          }
+        })
+        .catch(() => {
+          setSeller(null);
+          setIsSellerAuthenticated(false);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
-    setLoading(false);
-  }, [clientUser, clientLoading]);
+  }, [clientUser, clientLoading, clientAuth]);
 
   const sellerLogin = async (email, password) => {
     try {

@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import './App.css';
 
+import { ClientAuthProvider } from './context/ClientAuthContext';
 import { SellerAuthProvider } from './context/SellerAuthContext';
 import { ProductProvider } from './context/ProductContext';
 import { OrderProvider } from './context/OrderContext';
@@ -51,13 +52,15 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <SellerAuthProvider>
-      <ProductProvider>
-        <OrderProvider>
-          <RouterProvider router={router} />
-        </OrderProvider>
-      </ProductProvider>
-    </SellerAuthProvider>
+    <ClientAuthProvider>
+      <SellerAuthProvider>
+        <ProductProvider>
+          <OrderProvider>
+            <RouterProvider router={router} />
+          </OrderProvider>
+        </ProductProvider>
+      </SellerAuthProvider>
+    </ClientAuthProvider>
   );
 }
 

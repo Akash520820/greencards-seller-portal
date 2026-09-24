@@ -1,12 +1,24 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as authApi from '../api/auth.api';
 
-const ClientAuthContext = createContext();
+const ClientAuthContext = createContext(null);
 
 export const useClientAuth = () => {
   const context = useContext(ClientAuthContext);
   if (!context) {
-    throw new Error('useClientAuth must be used within a ClientAuthProvider');
+    return {
+      user: null,
+      isLoading: false,
+      error: null,
+      isAuthenticated: false,
+      register: async () => ({ success: false, error: 'Auth not initialized' }),
+      verifyOtp: async () => ({ success: false, error: 'Auth not initialized' }),
+      resendOtp: async () => ({ success: false, error: 'Auth not initialized' }),
+      login: async () => ({ success: false, error: 'Auth not initialized' }),
+      forgotPassword: async () => ({ success: false, error: 'Auth not initialized' }),
+      resetPassword: async () => ({ success: false, error: 'Auth not initialized' }),
+      logout: async () => {},
+    };
   }
   return context;
 };
@@ -139,3 +151,6 @@ export const ClientAuthProvider = ({ children }) => {
 
   return <ClientAuthContext.Provider value={value}>{children}</ClientAuthContext.Provider>;
 };
+
+export default ClientAuthContext;
+
